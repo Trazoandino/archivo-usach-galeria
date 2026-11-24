@@ -2,6 +2,10 @@
 
 Edición estática para GitHub Pages, con siete escaneos ya presentes en la biblioteca del proyecto. Incluye búsqueda, filtro por colección, fotografías y visor de splats SPZ y mallas Draco. No requiere backend, base de datos, autenticación, cuentas de alumnos ni servicios de almacenamiento pagados. Los modelos sólo se descargan cuando se abre el visor 3D.
 
+La portada reproduce la vista **Exposición de Taller** del prototipo React: identidad FARAC turquesa, navegación por once talleres, cuatro secciones por taller, selección de semestre y ocho tarjetas por taller. Los 88 lugares de exposición reutilizan los siete escaneos y las vistas de la biblioteca. Los títulos de proyectos, estudiantes y docentes son **datos de demostración**, copiados de `libraryData.ts`, sin atribuirles la autoría de los modelos. Una aclaración aparece al final de la exposición y en Información de la galería. El diálogo de cada modelo conserva sus metadatos de origen.
+
+Repositorio y Explorar muestran el catálogo de los siete registros reales, con búsqueda y filtros; Inicio conserva la presentación de la colección. Ninguna vista incluye inicio de sesión, entregas ni administración. Las opciones de visualización sólo cambian la densidad de las tarjetas en el navegador.
+
 Esta carpeta contiene una exportación independiente. No publicar el directorio completo del proyecto ni el frontend de administración. No contiene bases de datos, credenciales, matrículas ni documentos privados. El código activo del resto de la plataforma permanece en su repositorio original.
 
 ## Desarrollo y compilación

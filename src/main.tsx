@@ -6,9 +6,11 @@ import '@fontsource-variable/archivo';
 import { LIBRARY_SCANS, scanLabel, scanPage, scanRecord, scanView } from './libraryScans';
 import type { LibraryScan } from './libraryScans';
 import './style.css';
+import Exhibition, { PublicHeader } from './Exhibition';
+import type { PublicView } from './Exhibition';
 
 const Viewer = lazy(() => import('./LibraryScanViewer'));
-const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 const group = (scan: LibraryScan) => scan.project ? 'Polideportivo' : scanRecord(scan)?.course ?? 'Otros escaneos';
 const groups = ['Todos', ...new Set(LIBRARY_SCANS.map(group))];
 const title = (scan: LibraryScan) => scan.project ? `${scan.project.name} · ${scan.title === 'Maqueta taller 3' ? 'Taller 3' : 'San Antonio'}` : scan.title;
@@ -70,6 +72,7 @@ function ModelDialog({ scan, close }: { scan: LibraryScan; close: () => void }) 
 }
 
 function App() {
+  const [view, setView] = useState<PublicView>('Exposición');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Todos');
   const [selected, setSelected] = useState<LibraryScan | null>(null);
@@ -86,9 +89,9 @@ function App() {
   function close() { history.replaceState(null, '', location.pathname + location.search); setSelected(null); }
   return <>
     <a className="skip" href="#coleccion">Ir a la colección</a>
-    <header className="masthead"><a href="#" className="brand" aria-label="Archivo USACH, inicio"><img src={asset('identidad-usach/escudo-usach-recortado.png')} alt="" /><span><strong>ARCHIVO USACH</strong><small>Arquitectura · Galería 3D</small></span></a><a className="nav-link" href="#coleccion">Explorar colección</a></header>
-    <main>
-      <section className="hero"><div className="hero-copy"><p className="eyebrow">Maquetas · Escaneos · Arquitectura</p><h1>Arquitectura<br />para <em>explorar.</em></h1><p className="intro">Una mirada a las maquetas y sus espacios. Acércate, cambia de perspectiva y recorre la colección en tres dimensiones.</p><a className="primary-link" href="#coleccion">Ver los modelos</a><p className="hero-caption">Proyecto Archivo USACH · Universidad de Santiago de Chile</p></div><div className="hero-visual"><img src={scanView(LIBRARY_SCANS[0], 0)} alt="Maqueta del encargo Polideportivo en San Antonio" fetchPriority="high" /><span className="visual-label">Polideportivo · San Antonio, Chile</span><span className="visual-badge">EXPLORACIÓN 3D</span></div></section>
+    <PublicHeader view={view} onView={next => { setView(next); window.scrollTo(0, 0); }} />
+    {view === 'Exposición' ? <Exhibition onOpen={scan => { location.hash = `modelo=${scan.id}`; }} /> : <main className="public-catalog">
+      {view === 'Inicio' ? <section className="hero"><div className="hero-copy"><p className="eyebrow">Maquetas · Escaneos · Arquitectura</p><h1>Arquitectura<br />para <em>explorar.</em></h1><p className="intro">Una mirada a las maquetas y sus espacios. Acércate, cambia de perspectiva y recorre la colección en tres dimensiones.</p><a className="primary-link" href="#coleccion">Ver los modelos</a><p className="hero-caption">Proyecto Archivo USACH · Universidad de Santiago de Chile</p></div><div className="hero-visual"><img src={scanView(LIBRARY_SCANS[0], 0)} alt="Maqueta del encargo Polideportivo en San Antonio" fetchPriority="high" /><span className="visual-label">Polideportivo · San Antonio, Chile</span><span className="visual-badge">EXPLORACIÓN 3D</span></div></section> : <div className="catalog-heading"><h1>{view === 'Repositorio' ? 'Repositorio de modelos' : 'Explorar modelos'}</h1></div>}
       <section id="coleccion" className="collection" aria-labelledby="collection-title"><div className="section-head"><div><p className="eyebrow">La colección</p><h2 id="collection-title">Espacios, materia y memoria.</h2></div><span className="collection-total">{LIBRARY_SCANS.length} modelos para explorar</span></div>
         <div className="filters"><label className="search"><span>Buscar modelo</span><input type="search" placeholder="Título, taller o apellido…" value={search} onChange={event => setSearch(event.target.value)} /></label><label className="category"><span>Colección</span><select aria-label="Colección" value={category} onChange={event => setCategory(event.target.value)}>{groups.map(item => <option key={item}>{item}</option>)}</select></label></div>
         <p className="result-count" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'modelo' : 'modelos'}</p>
@@ -96,12 +99,13 @@ function App() {
         {filtered.length === 0 && <div className="empty"><h3>No encontramos modelos con esa búsqueda.</h3><button onClick={() => { setSearch(''); setCategory('Todos'); }}>Ver toda la colección</button></div>}
       </section>
       <section className="about"><p className="eyebrow">Del objeto al archivo</p><h2>Otra forma de mirar<br />la maqueta.</h2><div><p>Esta colección reúne escaneos de maquetas vinculadas a la Escuela de Arquitectura. Cada registro conserva sus vistas, la información disponible y un enlace a su publicación de origen.</p><p>Abre una maqueta y pulsa «Explorar en 3D» para recorrerla. También puedes consultar las fotografías desde cualquier dispositivo.</p></div></section>
-    </main>
+    </main>}
     <footer><span>ARCHIVO USACH <span className="footer-divider">/</span> Galería pública de arquitectura</span><span>Escaneos y créditos en cada registro.</span></footer>
     {selected && <ModelDialog key={selected.id} scan={selected} close={close} />}
   </>;
 }
 
 createRoot(document.getElementById('root')!).render(<App />);
+
 
 

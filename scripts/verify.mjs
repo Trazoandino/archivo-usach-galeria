@@ -3,13 +3,26 @@ import { mkdir } from 'node:fs/promises';
 
 const url = process.env.GALLERY_TEST_URL || 'http://127.0.0.1:4176/archivo-usach/';
 const browser = await chromium.launch({ headless: true, channel: process.env.GALLERY_BROWSER_CHANNEL || undefined, args: ['--enable-webgl'] });
-const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 const failures = [];
 page.on('pageerror', error => failures.push(error.message));
 page.on('response', response => { if (response.status() >= 400) failures.push(`${response.status()} ${response.url()}`); });
 page.on('request', request => { if (new URL(request.url()).pathname.startsWith('/api/')) failures.push(`Unexpected API request ${request.url()}`); });
 try {
   await page.goto(url);
+  await expect(page.getByRole('heading', { name: 'Exposición de Taller', exact: true })).toBeVisible();
+  await expect(page.locator('.workshop-level')).toHaveCount(11);
+  await expect(page.locator('.workshop-project')).toHaveCount(88);
+  await expect(page.locator('.workshop-section').first()).toContainText('Paula Herrera');
+  await expect(page.locator('.workshop-project').first()).toContainText('Habitar el borde');
+  await page.getByLabel('Semestre', { exact: true }).selectOption('1');
+  await expect(page.locator('.workshop-project').first()).toContainText('Pabellón de luz');
+  await page.getByLabel('Semestre', { exact: true }).selectOption('2');
+  await mkdir('test-results', { recursive: true });
+  await page.screenshot({ path: 'test-results/exhibition-desktop.png' });
+  await page.getByRole('button', { name: 'Ir a Taller de Diseño Arquitectónico VII', exact: true }).click();
+  await expect(page.locator('#taller-9')).toBeInViewport();
+  await page.getByRole('button', { name: 'Repositorio', exact: true }).click();
   await expect(page.locator('.card')).toHaveCount(7);
   await page.getByRole('searchbox').fill('garcia');
   await expect(page.locator('.card')).toHaveCount(1);
@@ -43,11 +56,11 @@ try {
     await expect(page.getByRole('dialog')).toHaveCount(0);
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(url);
-  await expect(page.locator('.card')).toHaveCount(7);
+  await page.goto(url + '?mobile=1');
+  await expect(page.locator('.workshop-project')).toHaveCount(88);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.screenshot({ path: 'test-results/mobile.png', fullPage: true });
-  await page.locator('.card-open').first().click();
+  await page.screenshot({ path: 'test-results/mobile.png' });
+  await page.locator('.workshop-project').first().click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.getByRole('button', { name: 'Ver fotografía 2', exact: true }).click();
   await expect(page.locator('.stage-image')).toHaveAttribute('src', /-2\.webp$/);
@@ -55,5 +68,5 @@ try {
   await page.screenshot({ path: 'test-results/mobile-detail.png' });
   await page.getByRole('button', { name: 'Cerrar modelo' }).click();
   expect(failures).toEqual([]);
-  console.log('OK: subruta de Pages, 7 modelos 3D, búsqueda, filtros, fotografías, enlace directo, cierre y móvil. Sin errores de red ni llamadas a API.');
+  console.log('OK: Exposición con 11 talleres y 88 tarjetas, semestre, navegación lateral, repositorio, 7 modelos 3D, búsqueda, filtros, fotografías, enlaces directos y móvil. Sin errores de red ni llamadas a API.');
 } finally { await browser.close(); }
